@@ -2,7 +2,7 @@
 // Lien vers la NavBar
 require_once('blade/DashPart.php');
 // Lien vers l'ASIDE
-require_once('blade/AsideUser.php');
+require_once('blade/AsidePart.php');
 ?>
 
 <main id="main" class="main">
