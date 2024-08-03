@@ -21,13 +21,6 @@ require_once('blade/AsidePart.php');
         <div class="welcome-message" id="welcomeMessage">
             <h1>Bienvenue, <?= htmlspecialchars($user['designation']) ?>!</h1>
             <p>Vous êtes connecté en tant qu' <?= htmlspecialchars($user['category']) ?></p>
-            <!-- <div class="col-md-8">
-                <p><strong>Catégorie :</strong> <?= htmlspecialchars($user['category']) ?></p>
-                <p><strong>Email :</strong> <?= htmlspecialchars($user['email']) ?></p>
-                <p><strong>Institution :</strong> <?= htmlspecialchars($user['institution_designation']) ?></p>
-                <p><strong>Email de l'institution :</strong> <?= htmlspecialchars($user['institution_email']) ?></p>
-                <p><strong>Adresse de l'institution :</strong> <?= htmlspecialchars($user['institution_adresse']) ?></p>
-            </div> -->
         </div>
     </section>
 
