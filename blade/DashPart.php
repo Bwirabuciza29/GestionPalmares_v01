@@ -211,7 +211,7 @@ $palmares = $stmtPalm->fetchAll(PDO::FETCH_ASSOC);
                         </li>
 
                         <li>
-                            <a class="dropdown-item d-flex align-items-center" href="users-profile.html">
+                            <a class="dropdown-item d-flex align-items-center" href="utilisateur.php">
                                 <i class="bi bi-person"></i>
                                 <span> <?= htmlspecialchars($user['designation']) ?></span>
                             </a>
