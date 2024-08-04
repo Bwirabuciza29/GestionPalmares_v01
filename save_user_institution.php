@@ -45,16 +45,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         if ($stmtUser->execute()) {
             $success_message = "L'enregistrement a réussi.";
-            header("Location: home.php?success=" . urlencode($success_message));
+            header("Location: user.php?success=" . urlencode($success_message));
             exit();
         } else {
             $error_message = "Erreur lors de l'enregistrement de l'utilisateur.";
-            header("Location: home.php?error=" . urlencode($error_message));
+            header("Location: user.php?error=" . urlencode($error_message));
             exit();
         }
     } else {
         $error_message = "Erreur lors de l'enregistrement de l'institution.";
-        header("Location: home.php?error=" . urlencode($error_message));
+        header("Location: user.php?error=" . urlencode($error_message));
         exit();
     }
 }
