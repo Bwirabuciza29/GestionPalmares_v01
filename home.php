@@ -23,7 +23,6 @@ $institutions = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     <section class="section dashboard">
         <div class="welcome-message" id="welcomeMessage">
-            <!-- <h1>Bienvenue <?php echo $userName; ?> dans l' <?php echo $userCategory; ?>!</h1> -->
             <p>Vous êtes connecté en tant qu'Administrateur.</p>
         </div>
         <div class="row">
