@@ -9,6 +9,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $password = $_POST['password'];
     $created_by = $_POST['created_by'];
 
+    // Hacher le mot de passe
+    $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+
     // Traitement du téléchargement de la photo
     $photo = '';
     if (isset($_FILES['photo']) && $_FILES['photo']['error'] == UPLOAD_ERR_OK) {
@@ -40,21 +43,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $stmtUser->bindParam(':designation', $designation);
         $stmtUser->bindParam(':email', $email);
         $stmtUser->bindParam(':category', $category);
-        $stmtUser->bindParam(':password', $password);
+        $stmtUser->bindParam(':password', $hashed_password); // Utiliser le mot de passe haché
         $stmtUser->bindParam(':institution_id', $institution_id);
 
         if ($stmtUser->execute()) {
             $success_message = "L'enregistrement a réussi.";
-            header("Location: user.php?success=" . urlencode($success_message));
+            header("Location: home.php?success=" . urlencode($success_message));
             exit();
         } else {
             $error_message = "Erreur lors de l'enregistrement de l'utilisateur.";
-            header("Location: user.php?error=" . urlencode($error_message));
+            header("Location: home.php?error=" . urlencode($error_message));
             exit();
         }
     } else {
         $error_message = "Erreur lors de l'enregistrement de l'institution.";
-        header("Location: user.php?error=" . urlencode($error_message));
+        header("Location: home.php?error=" . urlencode($error_message));
         exit();
     }
 }
