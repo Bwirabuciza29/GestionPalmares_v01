@@ -1,54 +1,60 @@
 <?php
-session_start();
-include 'config.php';
+require_once('config.php');
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $designation = $_POST['designation'];
     $email = $_POST['email'];
     $adresse = $_POST['adresse'];
     $category = $_POST['category'];
-    $password = password_hash($_POST['password'], PASSWORD_BCRYPT);
+    $password = $_POST['password'];
+    $created_by = $_POST['created_by'];
 
-    // Gestion de l'upload de la photo
-    $photo = $_FILES['photo']['name'];
-    $target_dir = "img/"; // Le dossier où la photo sera enregistrée
-    $target_file = $target_dir . basename($photo);
+    // Traitement du téléchargement de la photo
+    $photo = '';
+    if (isset($_FILES['photo']) && $_FILES['photo']['error'] == UPLOAD_ERR_OK) {
+        $photo = basename($_FILES['photo']['name']);
+        $uploadDir = 'img/';
+        $uploadFile = $uploadDir . $photo;
 
-    // Vérifier si le dossier existe, sinon le créer
-    if (!file_exists($target_dir)) {
-        mkdir($target_dir, 0777, true);
+        if (!move_uploaded_file($_FILES['photo']['tmp_name'], $uploadFile)) {
+            $error_message = "Erreur lors du téléchargement de la photo.";
+            header("Location: home.php?error=" . urlencode($error_message));
+            exit();
+        }
     }
 
-    // Déplacer le fichier téléchargé vers le dossier cible
-    if (move_uploaded_file($_FILES['photo']['tmp_name'], $target_file)) {
-        try {
-            // Commencer la transaction
-            $conn->beginTransaction();
+    // Insérer dans la table institution
+    $stmtInst = $conn->prepare("INSERT INTO institution (designation, email, adresse, photo, created_by) VALUES (:designation, :email, :adresse, :photo, :created_by)");
+    $stmtInst->bindParam(':designation', $designation);
+    $stmtInst->bindParam(':email', $email);
+    $stmtInst->bindParam(':adresse', $adresse);
+    $stmtInst->bindParam(':photo', $photo);
+    $stmtInst->bindParam(':created_by', $created_by);
 
-            // Insérer dans la table institution
-            $stmt1 = $conn->prepare("INSERT INTO institution (designation, email, adresse, photo, created_by) VALUES (?, ?, ?, ?, ?)");
-            $stmt1->execute([$designation, $email, $adresse, $photo, $category]);
+    if ($stmtInst->execute()) {
+        // Récupérer l'ID de l'institution nouvellement créé
+        $institution_id = $conn->lastInsertId();
 
-            // Insérer dans la table users
-            $stmt2 = $conn->prepare("INSERT INTO users (designation, email, category, password) VALUES (?, ?, ?, ?)");
-            $stmt2->execute([$designation, $email, $category, $password]);
+        // Insérer dans la table users
+        $stmtUser = $conn->prepare("INSERT INTO users (designation, email, category, password, institution_id) VALUES (:designation, :email, :category, :password, :institution_id)");
+        $stmtUser->bindParam(':designation', $designation);
+        $stmtUser->bindParam(':email', $email);
+        $stmtUser->bindParam(':category', $category);
+        $stmtUser->bindParam(':password', $password);
+        $stmtUser->bindParam(':institution_id', $institution_id);
 
-            // Valider la transaction
-            $conn->commit();
-
-            // Stocker le message d'alerte dans une session
-            $_SESSION['message'] = 'Enregistrement réussi !';
-            $_SESSION['alert_type'] = 'primary';
-
-            // Rediriger vers la page home.php après un enregistrement réussi
-            header("Location: user.php");
+        if ($stmtUser->execute()) {
+            $success_message = "L'enregistrement a réussi.";
+            header("Location: home.php?success=" . urlencode($success_message));
             exit();
-        } catch (PDOException $e) {
-            // Annuler la transaction
-            $conn->rollBack();
-            echo "Erreur : " . $e->getMessage();
+        } else {
+            $error_message = "Erreur lors de l'enregistrement de l'utilisateur.";
+            header("Location: home.php?error=" . urlencode($error_message));
+            exit();
         }
     } else {
-        echo "Erreur lors du téléchargement de la photo.";
+        $error_message = "Erreur lors de l'enregistrement de l'institution.";
+        header("Location: home.php?error=" . urlencode($error_message));
+        exit();
     }
 }
