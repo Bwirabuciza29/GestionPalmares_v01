@@ -37,25 +37,45 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $fichierPalm = $_FILES['fichierPalm']['name'];
         $created_by = $_SESSION['user_id'];
 
-        // Upload du fichier
-        $uploadDir = 'fichier/';
-        $uploadFile = $uploadDir . basename($_FILES['fichierPalm']['name']);
+        // Vérifiez si un palmarès avec la même année académique et le même fichier existe déjà
+        $stmtCheck = $conn->prepare("
+        SELECT COUNT(*) FROM palmares 
+        WHERE anneeAcademique = :anneeAcademique 
+        AND fichierPalm = :fichierPalm 
+        AND idInst = :idInst
+    ");
+        $stmtCheck->bindParam(':anneeAcademique', $anneeAcademique);
+        $stmtCheck->bindParam(':fichierPalm', $fichierPalm);
+        $stmtCheck->bindParam(':idInst', $idInst);
+        $stmtCheck->execute();
+        $count = $stmtCheck->fetchColumn();
 
-        if (move_uploaded_file($_FILES['fichierPalm']['tmp_name'], $uploadFile)) {
-            // Enregistrement du palmarès dans la base de données
-            $stmtInsert = $conn->prepare("INSERT INTO palmares (idInst, anneeAcademique, fichierPalm, created_by) VALUES (:idInst, :anneeAcademique, :fichierPalm, :created_by)");
-            $stmtInsert->bindParam(':idInst', $idInst);
-            $stmtInsert->bindParam(':anneeAcademique', $anneeAcademique);
-            $stmtInsert->bindParam(':fichierPalm', $fichierPalm);
-            $stmtInsert->bindParam(':created_by', $created_by);
-
-            if ($stmtInsert->execute()) {
-                $success_message = "Palmarès enregistré avec succès.";
-            } else {
-                $error_message = "Erreur lors de l'enregistrement du palmarès.";
-            }
+        if ($count > 0) {
+            $error_message = "Un palmarès avec la même année académique et le même fichier existe déjà.";
         } else {
-            $error_message = "Erreur lors du téléchargement du fichier.";
+            // Upload du fichier
+            $uploadDir = 'fichier/';
+            $uploadFile = $uploadDir . basename($_FILES['fichierPalm']['name']);
+
+            if (move_uploaded_file($_FILES['fichierPalm']['tmp_name'], $uploadFile)) {
+                // Enregistrement du palmarès dans la base de données
+                $stmtInsert = $conn->prepare("
+                INSERT INTO palmares (idInst, anneeAcademique, fichierPalm, created_by) 
+                VALUES (:idInst, :anneeAcademique, :fichierPalm, :created_by)
+            ");
+                $stmtInsert->bindParam(':idInst', $idInst);
+                $stmtInsert->bindParam(':anneeAcademique', $anneeAcademique);
+                $stmtInsert->bindParam(':fichierPalm', $fichierPalm);
+                $stmtInsert->bindParam(':created_by', $created_by);
+
+                if ($stmtInsert->execute()) {
+                    $success_message = "Palmarès enregistré avec succès.";
+                } else {
+                    $error_message = "Erreur lors de l'enregistrement du palmarès.";
+                }
+            } else {
+                $error_message = "Erreur lors du téléchargement du fichier.";
+            }
         }
     } elseif ($action === 'edit') {
         // Traitement du formulaire de modification du palmarès
